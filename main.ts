@@ -9,20 +9,28 @@ const LINE =
 
 const MAX_CHARS = 240;
 
-const charCount = [...LINE].length;
-if (charCount < 1 || charCount > MAX_CHARS) {
-  throw new Error(`entry is ${charCount} characters, must be 1-${MAX_CHARS}`);
+// Self-gate: the entry must be exactly one non-blank sentence of 1-240
+// code points, ending in a single period. Enforced here so the program
+// fails loudly instead of writing a line the competition would refuse.
+function validateEntry(line: string): number {
+  const count = [...line].length;
+  if (count < 1 || count > MAX_CHARS) {
+    throw new Error(`entry is ${count} characters, must be 1-${MAX_CHARS}`);
+  }
+  if (line.trim().length === 0) {
+    throw new Error("entry must not be blank");
+  }
+  if (line.includes("\n") || line.includes("\r")) {
+    throw new Error("entry must be a single line");
+  }
+  // One sentence: exactly one period, the sentence terminator at the end.
+  if ((line.match(/\./g) ?? []).length !== 1 || !line.endsWith(".")) {
+    throw new Error("entry must be exactly one sentence");
+  }
+  return count;
 }
-if (LINE.trim().length === 0) {
-  throw new Error("entry must not be blank");
-}
-if (LINE.includes("\n") || LINE.includes("\r")) {
-  throw new Error("entry must be a single line");
-}
-// One sentence: exactly one period, the sentence terminator at the end.
-if ((LINE.match(/\./g) ?? []).length !== 1 || !LINE.endsWith(".")) {
-  throw new Error("entry must be exactly one sentence");
-}
+
+const charCount = validateEntry(LINE);
 
 // Resolve where the entry goes. The grader runs the program with
 // $MAKEFUN_OUTPUT_DIR set to its writable output directory and reads the
